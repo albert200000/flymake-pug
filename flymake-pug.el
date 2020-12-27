@@ -1,3 +1,5 @@
+;;; flymake-pug.el --- Flymake backend for Pug using pug-lint  -*- lexical-binding: t; -*-
+
 (require 'flymake)
 
 (defgroup flymake-pug nil
@@ -21,10 +23,10 @@
              :buffer (generate-new-buffer " *Flymake-Pug*")
              :command (list "pug-lint" (buffer-file-name source))
              :sentinel
-             `(lambda (proc _event)
+             (lambda (proc _event)
                 (when (eq 'exit (process-status proc))
                   (unwind-protect
-                      (if (with-current-buffer ',source (eq proc flymake-pug--proc))
+                      (if (with-current-buffer source (eq proc flymake-pug--proc))
                           (with-current-buffer (process-buffer proc)
                             (goto-char (point-min))
                             (cl-loop
@@ -33,12 +35,12 @@
                                     nil t)
                              for msg = (match-string 4)
                              for (beg . end) = (flymake-diag-region
-                                                ',source
+                                                source
                                                 (string-to-number (match-string 2)))
-                             for type = :error
-                             collect (flymake-make-diagnostic ',source beg end type msg)
+                             for type = :warning
+                             collect (flymake-make-diagnostic source beg end type msg)
                              into diags
-                             finally (funcall ',report-fn diags)))
+                             finally (funcall report-fn diags)))
                         (flymake-log :warning "Canceling obsolete check %s" proc))
                     (kill-buffer (process-buffer proc))))))))))
 
